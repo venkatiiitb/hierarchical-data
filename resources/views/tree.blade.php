@@ -75,7 +75,7 @@
 
                 <div id="ajaxResponse"></div>
                 <label for="parent">Parent ID: </label>
-                <input type="text" class="form-control" id="parent" placeholder="quqLSOYOkJs5">
+                <input type="text" class="form-control" id="parent" placeholder="25604">
                 <input type="hidden" name="_token" id="token" value="{{ csrf_token() }}" />
                 <button type="button" class="btn btn-primary" id="addBtn">Add New Child</button>
 

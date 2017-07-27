@@ -39,7 +39,6 @@ class TreeRepository implements TreeInterface{
 
         DB::select('update tree set rgt = rgt - 2 where rgt > ?', [$right]);
 
-        return true;
     }
 
     public function findByName($name)
@@ -47,14 +46,24 @@ class TreeRepository implements TreeInterface{
         return Tree::where('name', $name)->first();
     }
 
-    public function create($node)
+    public function create($attributes)
+    {
+
+        Tree::create($attributes);
+
+    }
+
+    public function updateNodesWhileCreating($node)
     {
         DB::select('update tree set rgt = rgt + 2 where rgt > ?', [$node->rgt - 1]);
 
         DB::select('update tree set lft = lft + 2 where lft > ?', [$node->rgt - 1]);
+    }
 
-        Tree::create(array('name' => str_random(12), 'lft' => $node->rgt, 'rgt' => $node->rgt+1 ));
+    public function count()
+    {
 
-        return true;
+        return Tree::count();
+
     }
 }

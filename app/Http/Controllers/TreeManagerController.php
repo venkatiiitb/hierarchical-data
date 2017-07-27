@@ -64,12 +64,15 @@ class TreeManagerController extends Controller
 
                 $node = $this->tree->findByName($parent);
 
-                if($parent)
+                if($node)
                 {
-
                     $response = DB::transaction(function () use($node) {
 
-                                    $this->tree->create($node);
+                                    $this->tree->updateNodesWhileCreating($node);
+
+                                    $attributes = array('name' => rand(), 'lft' => $node->rgt, 'rgt' => $node->rgt+1 );
+
+                                    $this->tree->create($attributes);
 
                                     return ['status' => 200,'message' => 'Node added successfully!'];
 
@@ -81,7 +84,7 @@ class TreeManagerController extends Controller
 
                 }else{
 
-                    $nodes = Tree::count();
+                    $nodes = $this->tree->count();
 
                     if($nodes > 0)
                     {
@@ -92,7 +95,9 @@ class TreeManagerController extends Controller
 
                     }
 
-                    Tree::create(array('name' => str_random(12), 'lft' => 1, 'rgt' => 2 ));
+                    $attributes = array('name' => rand(), 'lft' => 1, 'rgt' => 2 );
+
+                    $this->tree->create($attributes);
 
                     Log::info(json_encode(['status' => 200,'message' => 'Node added successfully!']));
 

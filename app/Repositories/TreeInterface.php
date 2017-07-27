@@ -13,4 +13,8 @@ interface TreeInterface {
 
     public function delete($node);
 
+    public function updateNodesWhileCreating($node);
+
+    public function count();
+
 }
