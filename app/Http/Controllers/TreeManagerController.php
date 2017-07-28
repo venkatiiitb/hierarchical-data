@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Repositories\TreeInterface as TreeInterface;
-use App\Tree;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -41,7 +40,19 @@ class TreeManagerController extends Controller
 
         }
 
-        return view('tree')->with(array('nodes' => $nodes));
+        $temp_nodes = [];
+
+        if (count($nodes) > 0) {
+
+            foreach ($nodes as $key => $row) {
+
+                $temp_nodes[$row->depth][] = $row;
+
+            }
+
+        }
+
+        return view('tree')->with(array('nodes' => $temp_nodes));
 
     }
 
@@ -57,59 +68,48 @@ class TreeManagerController extends Controller
         try
         {
 
-            if($request->input('parent'))
+            $parent = $request->input('parent');
+
+            $node = $this->tree->findById($parent);
+
+            if($node)
             {
+                $response = DB::transaction(function () use($node) {
 
-                $parent = $request->input('parent');
+                    $this->tree->updateNodesWhileCreating($node);
 
-                $node = $this->tree->findByName($parent);
-
-                if($node)
-                {
-                    $response = DB::transaction(function () use($node) {
-
-                                    $this->tree->updateNodesWhileCreating($node);
-
-                                    $attributes = array('name' => rand(), 'lft' => $node->rgt, 'rgt' => $node->rgt+1 );
-
-                                    $this->tree->create($attributes);
-
-                                    return ['status' => 200,'message' => 'Node added successfully!'];
-
-                                });
-
-                    Log::info(json_encode($response));
-
-                    return Response::json($response);
-
-                }else{
-
-                    $nodes = $this->tree->count();
-
-                    if($nodes > 0)
-                    {
-
-                        Log::error(json_encode(['status' => 402,'message' => 'Please enter a valid parent ID']));
-
-                        return Response::json(['status' => 402,'message' => 'Please enter a valid parent ID']);
-
-                    }
-
-                    $attributes = array('name' => rand(), 'lft' => 1, 'rgt' => 2 );
+                    $attributes = array('lft' => $node->rgt, 'rgt' => $node->rgt+1 );
 
                     $this->tree->create($attributes);
 
-                    Log::info(json_encode(['status' => 200,'message' => 'Node added successfully!']));
+                    return ['status' => 200,'message' => 'Node added successfully!'];
 
-                    return Response::json(['status' => 200,'message' => 'Node added successfully!']);
+                });
 
-                }
+                Log::info(json_encode($response));
+
+                return Response::json($response);
 
             }else{
 
-                Log::error(json_encode(['status' => 402,'message' => 'Please enter a valid parent ID']));
+                $nodes = $this->tree->count();
 
-                return Response::json(['status' => 402,'message' => 'Please enter a valid parent ID']);
+                if($nodes > 0)
+                {
+
+                    Log::error(json_encode(['status' => 402,'message' => 'Please enter a valid parent ID']));
+
+                    return Response::json(['status' => 402,'message' => 'Please enter a valid parent ID']);
+
+                }
+
+                $attributes = array('lft' => 1, 'rgt' => 2 );
+
+                $this->tree->create($attributes);
+
+                Log::info(json_encode(['status' => 200,'message' => 'Node added successfully!']));
+
+                return Response::json(['status' => 200,'message' => 'Node added successfully!']);
 
             }
 
@@ -145,35 +145,24 @@ class TreeManagerController extends Controller
         try
         {
 
-            if($request->input('name'))
+            $id = $request->input('id');
+
+            $node = $this->tree->findById($id);
+
+            if($node)
             {
 
-                $name = $request->input('name');
+                $response = DB::transaction(function () use($node) {
 
-                $node = $this->tree->findByName($name);
+                    $this->tree->delete($node);
 
-                if($node)
-                {
+                    return ['status' => 200,'message' => 'Node deleted successfully!'];
 
-                    $response = DB::transaction(function () use($node) {
+                });
 
-                                    $this->tree->delete($node);
+                Log::info(json_encode($response));
 
-                                    return ['status' => 200,'message' => 'Node deleted successfully!'];
-
-                                });
-
-                    Log::info(json_encode($response));
-
-                    return Response::json($response);
-
-                }else{
-
-                    Log::error(json_encode(['status' => 402,'message' => 'Invalid Node!']));
-
-                    return Response::json(['status' => 402,'message' => 'Invalid Node!']);
-
-                }
+                return Response::json($response);
 
             }else{
 

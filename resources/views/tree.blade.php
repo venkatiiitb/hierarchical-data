@@ -29,43 +29,19 @@
             <!-- Tree view block starts here -->
             <div class="col-lg-6" id="tree_view">
 
-                <?php
+                @foreach($nodes as $key => $node)
 
-                    if(count($nodes) > 0)
-                    {
+                    <div class="flex-container" id="container-{{$key}}">
 
-                        $depth = -1;
-                        $flag = false;
-                        foreach ($nodes as $row) {
-                            while ($row->depth > $depth) {
-                                echo "<ul><li><a href='javascript:void(0);'>";
-                                $flag = false;
-                                $depth++;
-                            }
-                            while ($row->depth < $depth) {
-                                echo "</a></li></ul>";
-                                $depth--;
-                            }
-                            if ($flag) {
-                                echo "</a></li><li><a href='javascript:void(0);'>";
-                                $flag = false;
-                            }
-                            echo $row->name.'<button type="button" class="btn btn-danger margin-left-20 removeBtn" data-name="'.$row->name.'">Delete</button>' ;
-                            $flag = true;
-                        }
+                        @foreach($node as $subnode)
 
-                        while ($depth-- > -1) {
-                            echo "</a></li></ul>";
-                        }
+                            <div class="flex-item" id="item-{{$subnode->id}}">{{ $subnode->id }}<button type="button" class="btn btn-danger margin-left-20 removeBtn" data-id="'.$row->id.'">Delete</button></div>
 
-                    }else{
+                        @endforeach
 
-                        echo '<div class="alert alert-warning"><strong>Warning!</strong> There were no nodes in the tree!</div>';
+                    </div>
 
-                    }
-
-
-                ?>
+                @endforeach
 
             </div>
             <!-- Tree view block ends here -->
@@ -75,7 +51,7 @@
 
                 <div id="ajaxResponse"></div>
                 <label for="parent">Parent ID: </label>
-                <input type="text" class="form-control" id="parent" placeholder="25604">
+                <input type="text" class="form-control" id="parent" placeholder="0">
                 <input type="hidden" name="_token" id="token" value="{{ csrf_token() }}" />
                 <button type="button" class="btn btn-primary" id="addBtn">Add New Child</button>
 

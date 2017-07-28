@@ -16,12 +16,12 @@ class TreeRepository implements TreeInterface{
 
     public function getAll()
     {
-        $nodes =  DB::select('SELECT node.name, (COUNT(parent.name) - 1) AS depth
+        $nodes =  DB::select('SELECT node.id, (COUNT(parent.id) - 1) AS depth
                         FROM tree AS node,
                                 tree AS parent
                         WHERE node.lft BETWEEN parent.lft AND parent.rgt
-                        GROUP BY node.name
-                        ORDER BY node.lft');
+                        GROUP BY node.id
+                        ORDER BY depth');
 
         return $nodes;
     }
@@ -41,9 +41,9 @@ class TreeRepository implements TreeInterface{
 
     }
 
-    public function findByName($name)
+    public function findById($id)
     {
-        return Tree::where('name', $name)->first();
+        return Tree::find($id);
     }
 
     public function create($attributes)

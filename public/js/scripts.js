@@ -59,7 +59,7 @@ $(document).ready(function() {
 
         e.preventDefault();
 
-        var name = $(this).attr('data-name');
+        var id = $(this).attr('data-id');
 
         var token  = $('#token').val();
 
@@ -69,7 +69,7 @@ $(document).ready(function() {
             $.ajax({
                 type: "POST",
                 url: '/delete',
-                data: {name:name,_token:token},
+                data: {id:id,_token:token},
                 success: function( response ) {
 
                     if(response.status === 200)
@@ -144,7 +144,7 @@ function rebuildTree()
 
                     }
 
-                    html += node.name +'<button type="button" class="btn btn-danger margin-left-20 removeBtn" data-name="'+node.name+'">Delete</button>';
+                    html += node.id +'<button type="button" class="btn btn-danger margin-left-20 removeBtn" data-id="'+node.id+'">Delete</button>';
                     flag = true;
 
                 });
@@ -161,7 +161,7 @@ function rebuildTree()
 
             }else{
 
-                $('#tree_view').html('<strong>Warning!</strong> '+ response.message).addClass('alert alert-warning');
+                $('#tree_view').html('<div class="alert alert-warning"><strong>Warning!</strong> '+ response.message+'</div>');
 
             }
 

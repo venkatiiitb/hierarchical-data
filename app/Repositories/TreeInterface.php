@@ -9,7 +9,7 @@ interface TreeInterface {
 
     public function create($node);
 
-    public function findByName($name);
+    public function findById($id);
 
     public function delete($node);
 
