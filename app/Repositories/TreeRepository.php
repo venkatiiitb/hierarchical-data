@@ -4,6 +4,7 @@ namespace App\Repositories;
 
 use App\Tree;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class TreeRepository implements TreeInterface{
 
@@ -16,28 +17,14 @@ class TreeRepository implements TreeInterface{
 
     public function getAll()
     {
-        $nodes =  DB::select('SELECT node.id, (COUNT(parent.id) - 1) AS depth
-                        FROM tree AS node,
-                                tree AS parent
-                        WHERE node.lft BETWEEN parent.lft AND parent.rgt
-                        GROUP BY node.id
-                        ORDER BY depth');
+        $nodes =  Tree::orderBy('depth', 'asc')->get();
 
         return $nodes;
     }
 
-    public function delete($node)
+    public function delete($id)
     {
-        $left = $node->lft;
-        $right = $node->rgt;
-
-        Tree::where('lft',$left)->delete();
-
-        DB::select('update tree set rgt = rgt - 1, lft = lft - 1 where lft between ? and ?', [$left, $right]);
-
-        DB::select('update tree set lft = lft - 2 where lft > ?', [$right]);
-
-        DB::select('update tree set rgt = rgt - 2 where rgt > ?', [$right]);
+        Tree::destroy($id);
 
     }
 
@@ -46,18 +33,31 @@ class TreeRepository implements TreeInterface{
         return Tree::find($id);
     }
 
-    public function create($attributes)
+    public function findByPath($id)
     {
+        return Tree::where('path','like', '%'.$id.'%')->orderBy('depth', 'asc')->get();
+    }
 
-        Tree::create($attributes);
+    public function updateParentDepth($node)
+    {
+        $path = ($node->path) ? '/'.$node->id : $node->id.'/';
+
+        if(!$node->path)
+        {
+            DB::select('update tree set path = "", depth = depth -1 where path ="'. $node->id .'"');
+        }
+
+        DB::select('UPDATE tree SET path = REPLACE(path, "'.$path.'", ""), depth = depth - 1 WHERE path LIKE "%'.$path.'%"');
 
     }
 
-    public function updateNodesWhileCreating($node)
+    public function create($attributes)
     {
-        DB::select('update tree set rgt = rgt + 2 where rgt > ?', [$node->rgt - 1]);
 
-        DB::select('update tree set lft = lft + 2 where lft > ?', [$node->rgt - 1]);
+        $node = Tree::create($attributes);
+
+        return $node->id;
+
     }
 
     public function count()

@@ -1,11 +1,6 @@
 $(document).ready(function() {
 
     /**
-     * styles the tree view with animations
-     */
-    styleTree();
-
-    /**
      * handles add a new child event
      */
     $('#addBtn').on('click', function (e) {
@@ -30,7 +25,16 @@ $(document).ready(function() {
 
                         $('#parent').val('');
 
-                        rebuildTree();
+                        $('#container-'+response.depth).append('<div class="flex-item" id="item-'+response.id+'">ID: '+response.id+'['+response.depth+']<button type="button" class="btn btn-danger margin-left-20 removeBtn" data-id="'+response.id+'" data-depth="'+response.depth+'" data-path="'+response.path+'">Delete</button></div>')
+
+                        if(!$('#container-'+response.depth).next('.flex-container').length)
+                        {
+
+                            var depth = parseInt(response.depth)+1;
+
+                            $('#container-'+response.depth).parent().append('<div class="flex-container" id="container-'+depth+'"></div>');
+
+                        }
 
                     }else{
 
@@ -60,7 +64,8 @@ $(document).ready(function() {
         e.preventDefault();
 
         var id = $(this).attr('data-id');
-
+        var depth = $(this).attr('data-depth');
+        var path = $(this).attr('data-path');
         var token  = $('#token').val();
 
         if(parent)
@@ -74,9 +79,55 @@ $(document).ready(function() {
 
                     if(response.status === 200)
                     {
-                        $('#ajaxResponse').html('<strong>Success!</strong> '+ response.message).addClass('alert alert-success');
 
-                        rebuildTree();
+                        if($('#container-'+ depth).children.length === 1)
+                        {
+
+                            var newDepth = parseInt(depth)+1;
+
+                            $('#container-'+newDepth).remove();
+
+                            $('#item-'+id).remove();
+
+                        }else{
+
+                            $('#item-'+id).remove();
+
+                        }
+
+                        response.nodes.forEach(function(node){
+
+                            if($('#container-'+ node.depth).children.length === 1)
+                            {
+
+                                var containerDepth = parseInt(node.depth)+1;
+
+                                $('#container-'+containerDepth).remove();
+
+                                $('#item-'+node.id).remove();
+
+                            }else{
+
+                                $('#item-'+node.id).remove();
+
+                            }
+
+                            var itemDepth = parseInt(node.depth) - 1;
+
+                            var searchPath = (path) ? '/'+id : id+'/';
+
+                            var newPath = node.path.replace(searchPath, "");
+
+                            if(!path && node.path === id)
+                            {
+                                newPath = "";
+                            }
+
+                            $('#container-'+itemDepth).append('<div class="flex-item" id="item-'+node.id+'">ID: '+node.id+'['+itemDepth+']<button type="button" class="btn btn-danger margin-left-20 removeBtn" data-id="'+node.id+'" data-depth="'+itemDepth+'" data-path="'+newPath+'">Delete</button></div>');
+
+                        });
+
+                        $('#ajaxResponse').html('<strong>Success!</strong> '+ response.message).addClass('alert alert-success');
 
                     }else{
 
@@ -99,162 +150,3 @@ $(document).ready(function() {
     });
 
 });
-
-/**
- * re builds entire tree
- */
-function rebuildTree()
-{
-
-    $.ajax({
-        type: "GET",
-        url: '/',
-        success: function( response ) {
-
-            if(response.status === 200)
-            {
-
-                var nodes  = response.data;
-
-                var html = '';
-                var depth = -1;
-                var flag = false;
-
-                nodes.forEach(function(node){
-
-                    while (node.depth > depth) {
-
-                        html +="<ul><li><a href='javascript:void(0);'>";
-                        flag = false;
-                        depth++;
-
-                    }
-
-                    while (node.depth < depth) {
-
-                        html += "</a></li></ul>";
-                        depth--;
-
-                    }
-
-                    if (flag) {
-
-                        html += "</a></li><li><a href='javascript:void(0);'>";
-                        flag = false;
-
-                    }
-
-                    html += node.id +'<button type="button" class="btn btn-danger margin-left-20 removeBtn" data-id="'+node.id+'">Delete</button>';
-                    flag = true;
-
-                });
-
-                while (depth-- > -1) {
-
-                    html += "</a></li></ul>";
-
-                }
-
-                $('#tree_view').html(html);
-
-                styleTree();
-
-            }else{
-
-                $('#tree_view').html('<div class="alert alert-warning"><strong>Warning!</strong> '+ response.message+'</div>');
-
-            }
-
-        }
-
-    });
-
-}
-
-/**
- * styles the tree with animations
- */
-function styleTree()
-{
-    // Select the main list and add the class "hasSubmenu" in each LI that contains an UL
-    $('ul').each(function(){
-
-        $this = $(this);
-
-        $this.find("li").has("ul").addClass("hasSubmenu");
-
-    });
-
-    // Find the last li in each level
-    $('li:last-child').each(function(){
-
-        $this = $(this);
-
-        // Check if LI has children
-        if ($this.children('ul').length === 0){
-
-            // Add border-left in every UL where the last LI has not children
-            $this.closest('ul').css("border-left", "1px solid gray");
-
-        } else {
-
-            // Add border in child LI, except in the last one
-            $this.closest('ul').children("li").not(":last").css("border-left","1px solid gray");
-
-            // Add the class "addBorderBefore" to create the pseudo-element :defore in the last li
-            $this.closest('ul').children("li").last().children("a").addClass("addBorderBefore");
-
-            // Add margin in the first level of the list
-            $this.closest('ul').css("margin-top","20px");
-
-            // Add margin in other levels of the list
-            $this.closest('ul').find("li").children("ul").css("margin-top","20px");
-
-        };
-
-    });
-
-    // Add bold in li and levels above
-    $('ul li').each(function(){
-
-        $this = $(this);
-
-        $this.mouseenter(function(){
-
-            $( this ).children("a").css({"font-weight":"bold","color":"#336b9b"});
-
-        });
-
-        $this.mouseleave(function(){
-
-            $( this ).children("a").css({"font-weight":"normal","color":"#428bca"});
-
-        });
-
-    });
-
-    // Add button to expand and condense - Using FontAwesome
-    $('ul li.hasSubmenu').each(function(){
-
-        $this = $(this);
-
-        $this.prepend("<a href='#'><i class='fa fa-minus-circle' aria-hidden='true'></i><i style='display:none;' class='fa fa-plus-circle' aria-hidden='true'></i></a>");
-
-        $this.children("a").not(":last").removeClass().addClass("toogle");
-
-    });
-
-    // Actions to expand and consense
-    $('ul li.hasSubmenu a.toogle').click(function(){
-
-        $this = $(this);
-
-        $this.closest("li").children("ul").toggle("slow");
-
-        $this.children("i").toggle();
-
-        return false;
-
-    });
-
-}

@@ -11,9 +11,11 @@ interface TreeInterface {
 
     public function findById($id);
 
+    public function findByPath($id);
+
     public function delete($node);
 
-    public function updateNodesWhileCreating($node);
+    public function updateParentDepth($node);
 
     public function count();
 

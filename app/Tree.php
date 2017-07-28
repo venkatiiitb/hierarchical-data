@@ -19,7 +19,7 @@ class Tree extends Model
      * @var array
      */
     protected $fillable = [
-        'name', 'lft', 'rgt',
+        'depth','path'
     ];
 
 }

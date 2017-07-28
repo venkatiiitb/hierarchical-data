@@ -76,13 +76,11 @@ class TreeManagerController extends Controller
             {
                 $response = DB::transaction(function () use($node) {
 
-                    $this->tree->updateNodesWhileCreating($node);
+                    $attributes = array('depth' => $node->depth+1, 'path' => ($node->path) ? $node->path.'/'.$node->id : $node->id);
 
-                    $attributes = array('lft' => $node->rgt, 'rgt' => $node->rgt+1 );
+                    $id = $this->tree->create($attributes);
 
-                    $this->tree->create($attributes);
-
-                    return ['status' => 200,'message' => 'Node added successfully!'];
+                    return ['status' => 200,'message' => 'Node added successfully!', 'id' => $id, 'depth' => $node->depth+1, 'path' => ($node->path) ? $node->path.'/'.$node->id : $node->id];
 
                 });
 
@@ -92,24 +90,13 @@ class TreeManagerController extends Controller
 
             }else{
 
-                $nodes = $this->tree->count();
+                $attributes = array('depth' => 0, 'path' => '');
 
-                if($nodes > 0)
-                {
+                $id = $this->tree->create($attributes);
 
-                    Log::error(json_encode(['status' => 402,'message' => 'Please enter a valid parent ID']));
+                Log::info(json_encode(['status' => 200,'message' => 'Node added successfully!', 'id' => $id, 'depth' => 0, 'path' => '']));
 
-                    return Response::json(['status' => 402,'message' => 'Please enter a valid parent ID']);
-
-                }
-
-                $attributes = array('lft' => 1, 'rgt' => 2 );
-
-                $this->tree->create($attributes);
-
-                Log::info(json_encode(['status' => 200,'message' => 'Node added successfully!']));
-
-                return Response::json(['status' => 200,'message' => 'Node added successfully!']);
+                return Response::json(['status' => 200,'message' => 'Node added successfully!', 'id' => $id, 'depth' => 0, 'path' => '']);
 
             }
 
@@ -154,9 +141,13 @@ class TreeManagerController extends Controller
 
                 $response = DB::transaction(function () use($node) {
 
-                    $this->tree->delete($node);
+                    $children = $this->tree->findByPath($node->id);
 
-                    return ['status' => 200,'message' => 'Node deleted successfully!'];
+                    $this->tree->updateParentDepth($node);
+
+                    $this->tree->delete($node->id);
+
+                    return ['status' => 200,'message' => 'Node deleted successfully!', 'nodes' => $children, 'path' => $node->path];
 
                 });
 

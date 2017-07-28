@@ -15,10 +15,8 @@ class CreateTreeTable extends Migration
     {
         Schema::create('tree', function (Blueprint $table) {
             $table->increments('id');
-            $table->string('name', 20)->index();
-            $table->integer('lft')->index();
-            $table->integer('rgt')->index();
-            $table->index(['lft', 'rgt']);
+            $table->integer('depth')->index();
+            $table->text('path');
             $table->timestamps();
         });
     }

@@ -35,13 +35,15 @@
 
                         @foreach($node as $subnode)
 
-                            <div class="flex-item" id="item-{{$subnode->id}}">{{ $subnode->id }}<button type="button" class="btn btn-danger margin-left-20 removeBtn" data-id="'.$row->id.'">Delete</button></div>
+                            <div class="flex-item" id="item-{{$subnode->id}}">ID: {{ $subnode->id }} [{{ $key }}]<button type="button" class="btn btn-danger margin-left-20 removeBtn" data-id="{{$subnode->id}}" data-depth="{{$key}}" data-path="{{$subnode->path}}">Delete</button></div>
 
                         @endforeach
 
                     </div>
 
                 @endforeach
+
+                <div class="flex-container" id="container-{{count($nodes)}}"></div>
 
             </div>
             <!-- Tree view block ends here -->
